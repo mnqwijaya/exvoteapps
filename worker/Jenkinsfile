@@ -1,10 +1,10 @@
 pipeline {
-  agent none
-  
+agent none
+
   stages{
     
     stage("build"){
-      agent {
+      agent{
         docker{
           image 'maven:3.6.1-jdk-8-slim'
           args '-v $HOME/.m2:/root/.m2'
@@ -22,9 +22,10 @@ pipeline {
     }
     
     stage("test"){
-      agent {
+      agent{
         docker{
           image 'maven:3.6.1-jdk-8-slim'
+          args '-v $HOME/.m2:/root/.m2'
         }
       }
       when{
@@ -38,11 +39,11 @@ pipeline {
       }
     }
     
-   stage("package"){
-      agent any{
+    stage("package"){
+      agent any
       when{
-       branch 'master'
-         changeset "**/worker/**"
+        branch 'master'
+        changeset "**/worker/**"
       }
       steps{
         echo 'Packaging worker app'
@@ -50,19 +51,19 @@ pipeline {
           sh 'mvn package -DskipTests'
         }
       }
-      }    
+    }
+    
   }
   
   post{        
       success {
-        slackSend (channel: "instavote", message: "ilham - Build Succeeded - Result App - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+        slackSend (channel: "instavote", message: "ilham - Build Succeeded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
       }
       failure {
-        slackSend (channel: "instavote", message: "ilham - Build Failed - Result App - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+        slackSend (channel: "instavote", message: "ilham - Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
       }
       always{
-        echo 'Building multibranch pipeline for result is completed..'
+        echo 'Building multibranch pipeline for worker is completed..'
       }
   }
 }
-
