@@ -1,16 +1,17 @@
 pipeline {
   agent none
- 
+  
   stages{
+    
     stage("build"){
       agent {
         docker{
           image 'node:8.16.0-alpine'
         }
-      }      
+      }
       when{
-        changeset "**/result/**"
-    }
+         changeset "**/result/**"
+      }
       steps{
         echo 'Compiling result app'
         dir('result'){
@@ -19,16 +20,15 @@ pipeline {
       }
     }
     
-    stages{
     stage("test"){
       agent {
         docker{
           image 'node:8.16.0-alpine'
         }
-      }      
+      }
       when{
-      changeset "**/result/**"
-    }
+         changeset "**/result/**"
+      }
       steps{
         echo 'Running Unit Test on result app'
         dir('result'){
@@ -37,17 +37,18 @@ pipeline {
         }
       }
     }
+    
   }
   
-  post{
-      always {
-        echo 'Building multibranch pipeline for Result App is completed..'
+  post{        
+      success {
+        slackSend (channel: "instavote", message: "ilham - Build Succeeded - Result App - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
       }
       failure {
-          slackSend (channel: "instavote", message: "Nur Qomari - Build Result App Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+        slackSend (channel: "instavote", message: "ilham - Build Failed - Result App - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
       }
-      success {
-          slackSend (channel: "instavote", message: "Nur Qomari - Build Result App Succeeded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+      always{
+        echo 'Building multibranch pipeline for result is completed..'
       }
   }
 }
