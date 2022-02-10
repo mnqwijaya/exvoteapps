@@ -1,58 +1,61 @@
 pipeline {
   agent none
-  stages {
-    docker{
-      image 'phyton:2.7.16-alpine'
-      args '--user root'
-    }
-  }
+  
   stages{
     stage("build"){
-      docker{
-      image 'phyton:2.7.16-alpine'
-      args '--user root'
-    }
+      agent {
+        docker{
+          image 'python:2.7.16-slim'
+          args '--user root'
+        }
+      }
+      
       when{
-      changeset "**/vote/**"
-    }
+         changeset "**/vote/**"
+      }
+      
       steps{
         echo 'Compiling vote app'
         dir('vote'){
+          sleep 15
           sh 'pip install --upgrade pip'
-          sh 'pip install -r requirement.txt'
+          sh 'pip install -r requirements.txt'
         }
       }
     }
     
     stage("test"){
-      docker{
-      image 'phyton:2.7.16-alpine'
-      args '--user root'
-    }
+      agent {
+        docker{
+          image 'python:2.7.16-slim'
+          args '--user root'
+        }
+      }
       when{
-      changeset "**/vote/**"
-    }
+         changeset "**/vote/**"
+      }
       steps{
         echo 'Running Unit Test on vote app'
         dir('vote'){
           sh 'pip install --upgrade pip'
-          sh 'pip install -r requirement.txt'       
+          sh 'pip install -r requirements.txt'
           sh 'nosetests -v'
           sleep 15
-          }
+        }
       }
     }
+    
   }
   
-  post{
-      always {
-        echo 'Building multibranch pipeline for Vote App is completed..'
+  post{        
+      success {
+        slackSend (channel: "instavote", message: "ilham - Build Succeeded - Vote App - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
       }
       failure {
-          slackSend (channel: "instavote", message: "Nur Qomari - Build Vote App Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+        slackSend (channel: "instavote", message: "ilham - Build Failed - Vote App - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
       }
-      success {
-          slackSend (channel: "instavote", message: "Nur Qomari - Build Vote App Succeeded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+      always{
+        echo 'Building multibranch pipeline for vote is completed..'
       }
   }
 }
