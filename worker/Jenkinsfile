@@ -50,6 +50,7 @@ pipeline {
           sh 'mvn package -DskipTests'
         }
       }
+      }    
   }
   
   post{        
