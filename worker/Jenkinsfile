@@ -81,7 +81,7 @@ agent none
   
   post{        
       success {
-        slackSend (channel: "instavote", message: "nurqomair - Build Succeeded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+        slackSend (channel: "instavote", message: "nurqomari - Build Succeeded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
       }
       failure {
         slackSend (channel: "instavote", message: "nurqomari - Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
