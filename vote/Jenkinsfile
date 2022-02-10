@@ -1,0 +1,49 @@
+pipeline {
+  agent{
+    docker{
+      image 'phyton:2.7.16-alpine'
+      args '--user root'
+    }
+  }
+  stages{
+    stage("build"){
+      when{
+      changeset "**/vote/**"
+    }
+      steps{
+        echo 'Compiling vote app'
+        dir('vote'){
+          sh 'pip install --upgrade pip'
+          sh 'pip install -r requirement.txt'
+        }
+      }
+    }
+    
+    stage("test"){
+      when{
+      changeset "**/vote/**"
+    }
+      steps{
+        echo 'Running Unit Test on vote app'
+        dir('vote'){
+          sh 'pip install --upgrade pip'
+          sh 'pip install -r requirement.txt'       
+          sh 'nosetests -v'
+          sleep 15
+          }
+      }
+    }
+  }
+  
+  post{
+      always {
+        echo 'Building multibranch pipeline for Vote App is completed..'
+      }
+      failure {
+          slackSend (channel: "instavote", message: "Nur Qomari - Build Vote App Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+      }
+      success {
+          slackSend (channel: "instavote", message: "Nur Qomari - Build Vote App Succeeded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+      }
+  }
+}
