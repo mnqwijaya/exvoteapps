@@ -1,16 +1,18 @@
 pipeline {
- agent{
-    docker{
-      image 'maven:3.6.1-jdk-8-slim'
-      args '-v $HOME/.m2:/root/.m2'
-    }
-  }
+  agent none
+  
   stages{
     
     stage("build"){
+      agent {
+        docker{
+          image 'maven:3.6.1-jdk-8-slim'
+          args '-v $HOME/.m2:/root/.m2'
+        }
+      }
       when{
-      changeset "**/worker/**"
-    }
+         changeset "**/worker/**"
+      }
       steps{
         echo 'Compiling worker app'
         dir('worker'){
@@ -20,9 +22,14 @@ pipeline {
     }
     
     stage("test"){
+      agent {
+        docker{
+          image 'maven:3.6.1-jdk-8-slim'
+        }
+      }
       when{
-      changeset "**/worker/**"
-    }
+         changeset "**/worker/**"
+      }
       steps{
         echo 'Running Unit Test on worker app'
         dir('worker'){
@@ -31,30 +38,30 @@ pipeline {
       }
     }
     
-    stage("package"){
+   stage("package"){
+      agent any{
       when{
-        branch 'master'
-      changeset "**/worker/**"
-    }
+       branch 'master'
+         changeset "**/worker/**"
+      }
       steps{
         echo 'Packaging worker app'
         dir('worker'){
           sh 'mvn package -DskipTests'
         }
       }
-    }
-    
   }
   
-  post{
-      always {
-        echo 'Building multibranch pipeline for worker is completed..'
+  post{        
+      success {
+        slackSend (channel: "instavote", message: "ilham - Build Succeeded - Result App - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
       }
       failure {
-          slackSend (channel: "instavote", message: "Nur Qomari - Build Failed - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+        slackSend (channel: "instavote", message: "ilham - Build Failed - Result App - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
       }
-      success {
-          slackSend (channel: "instavote", message: "Nur Qomari - Build Succeeded - ${env.JOB_NAME} ${env.BUILD_NUMBER} (<${env.BUILD_URL}|Open>)")
+      always{
+        echo 'Building multibranch pipeline for result is completed..'
       }
   }
 }
+
